@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorturl
+  namespace: shorturl
+spec:
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-shorturl-shorturl
+  template:
+    metadata:
+      labels:
+        app: shorturl
+      annotations:
+        deploy-date: "deploy-date-value"

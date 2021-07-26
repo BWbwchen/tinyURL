@@ -1,0 +1,40 @@
+# This file is a template, and might need editing before it works on your project.
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/README.html#stages
+
+stages:          # List of stages for jobs, and their order of execution
+  - build
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: "https://index.docker.io/v1/"
+  DOCKER_REGISTRY_USER: "YOUR_NAME"
+  DOCKER_REGISTRY_PASSWORD: "YOUR_DOCKER"
+  DOCKER_IMAGE: "YOUR_IMAGENAME"
+  KUBECONFIG: /root/.kube/config
+
+build-job:  
+  image: 
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: build
+  script:
+     - mkdir -p /kaniko/.docker
+     - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"username\":\"$DOCKER_REGISTRY_USER\",\"password\":\"$DOCKER_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DOCKER_IMAGE
+
+deploy-job:
+  stage: deploy
+  image: dtzar/helm-kubectl
+  before_script:
+    - sed -ie "s/deploy-date-value/$(date)/g" kubernetes/cd.yaml
+    - mkdir -p /root/.kube/ && touch /root/.kube/config
+    - echo ${KUBERNETES_KUBE_CONFIG} | base64 -d > ${KUBECONFIG}
+  script:
+    - kubectl apply -f kubernetes/cd.yaml

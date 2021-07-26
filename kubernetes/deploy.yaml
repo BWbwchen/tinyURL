@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shorturl
+  namespace: shorturl
+  labels:
+    app: shorturl
+    workload.user.cattle.io/workloadselector: deployment-shorturl-shorturl
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: shorturl 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2        # how many pods we can add at a time
+      maxUnavailable: 0  # maxUnavailable define how many pods can be unavailable
+                         # during the rolling updatetype: Recreate
+  template:
+    metadata:
+      labels:
+        app: shorturl
+        workload.user.cattle.io/workloadselector: deployment-shorturl-shorturl
+    spec:
+      containers:
+      - name: shorturl
+        image: bwbwchen/shorturl
+        env:
+        - name: REDIS_URL
+          value: redis-service:6379
+        - name: DB_URL
+          value: db-service:27017
+        - name: ZOOKEEPER_URL
+          value: zookeeper-service:2181
+        ports:
+        - containerPort: 8080

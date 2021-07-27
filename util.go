@@ -21,6 +21,9 @@ var LENGTH int = 7
 var URL = os.Getenv("ZOOKEEPER_URL")
 var zookeeperPath = "/seed"
 var zookeeper *zk.Conn
+var counterRange int = 100
+var counterNow int = 0
+var counterBase int
 
 func InitZookeeper() {
 	c, _, err := zk.Connect([]string{URL}, time.Second) //*10)
@@ -28,12 +31,23 @@ func InitZookeeper() {
 	if err != nil {
 		panic(err)
 	}
+	// zookeeper register
 	data := []byte("0")
 	zookeeper.Create(zookeeperPath, data, 0, zk.WorldACL(zk.PermAll))
+	counterBase = getCounter()
 }
 
 func GetShortName(longURL string) string {
-	hash := md5.Sum([]byte(strconv.Itoa(getCounter())))
+	counter := counterNow + counterBase*counterRange
+	hash := md5.Sum([]byte(strconv.Itoa(counter)))
+
+	// update counter
+	counterNow += 1
+	if counterNow == counterRange {
+		counterNow = 0
+		counterBase = getCounter()
+	}
+
 	return hex.EncodeToString(hash[:])[0:LENGTH]
 }
 

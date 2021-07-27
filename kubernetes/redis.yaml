@@ -22,6 +22,6 @@ metadata:
 spec:
   containers:
   - name: redis
-    image: redis:alpine
+    image: bwbwchen/redis-lru
     ports:
     - containerPort: 6379

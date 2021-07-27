@@ -25,3 +25,10 @@ spec:
     image: mongo:4.0.26-xenial
     ports:
     - containerPort: 27017
+    volumeMounts:
+    - mountPath: /data/db
+      name: db-storage
+  volumes:
+  - name: db-storage
+    hostPath:
+      path: /home/rancher/volume/mongodb

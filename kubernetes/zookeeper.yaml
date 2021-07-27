@@ -25,3 +25,15 @@ spec:
     image: zookeeper:3.7.0
     ports:
     - containerPort: 2181
+    volumeMounts:
+    - mountPath: /data
+      name: zookeeper-storage-data
+    - mountPath: /datalog
+      name: zookeeper-storage-datalog
+  volumes:
+  - name: zookeeper-storage-data
+    hostPath:
+      path: /home/rancher/volume/zookeeper/data
+  - name: zookeeper-storage-datalog
+    hostPath:
+      path: /home/rancher/volume/zookeeper/datalog

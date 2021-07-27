@@ -15,7 +15,7 @@ stages:          # List of stages for jobs, and their order of execution
 variables:
   DOCKER_REGISTRY: "https://index.docker.io/v1/"
   DOCKER_REGISTRY_USER: "YOUR_NAME"
-  DOCKER_REGISTRY_PASSWORD: "YOUR_DOCKER"
+  DOCKER_REGISTRY_PASSWORD: "YOUR_PASSWORD"
   DOCKER_IMAGE: "YOUR_IMAGENAME"
   KUBECONFIG: /root/.kube/config
 

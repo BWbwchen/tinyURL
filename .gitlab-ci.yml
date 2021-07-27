@@ -33,8 +33,8 @@ deploy-job:
   stage: deploy
   image: dtzar/helm-kubectl
   before_script:
-    - sed -ie "s/deploy-date-value/$(date)/g" kubernetes/cd.yaml
+    - sed -ie "s/deploy-date-value/$(date)/g" kubernetes/deploy.yaml
     - mkdir -p /root/.kube/ && touch /root/.kube/config
     - echo ${KUBERNETES_KUBE_CONFIG} | base64 -d > ${KUBECONFIG}
   script:
-    - kubectl apply -f kubernetes/cd.yaml
+    - kubectl apply -f kubernetes/deploy.yaml

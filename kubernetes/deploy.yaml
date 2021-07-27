@@ -5,7 +5,6 @@ metadata:
   namespace: shorturl
   labels:
     app: shorturl
-    workload.user.cattle.io/workloadselector: deployment-shorturl-shorturl
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -23,7 +22,8 @@ spec:
     metadata:
       labels:
         app: shorturl
-        workload.user.cattle.io/workloadselector: deployment-shorturl-shorturl
+      annotations:
+        deploy-date: "deploy-date-value"
     spec:
       containers:
       - name: shorturl

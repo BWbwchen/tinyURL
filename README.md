@@ -24,6 +24,7 @@ For get long URL, find in redis cache first. if not found, find in the database.
 ![](img/system_architecture.jpg)
 
 ## Load Testing
+The load testing is tested by [k6](https://k6.io/)
 ![](img/load.png)
 
 ## Throuble I encoutered

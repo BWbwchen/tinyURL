@@ -57,7 +57,7 @@ func main() {
 		LongURL, err := RedisGet(shortName)
 		//LongURL, err := DatabaseGet(shortName)
 		if err != nil {
-			// Not found
+			// if not found, find in database
 			DatabaseLongURL, err_ := DatabaseGet(shortName)
 			if err_ != nil {
 				c.JSON(http.StatusNotFound, GETresponse{
@@ -65,13 +65,13 @@ func main() {
 					URL:    "",
 				})
 			} else {
+				RedisAdd(DatabaseLongURL, shortName)
 				c.JSON(http.StatusOK, GETresponse{
 					Status: "(Database)OK",
 					URL:    DatabaseLongURL,
 				})
 			}
 		} else {
-			// if not found, find in database
 			c.JSON(http.StatusOK, GETresponse{
 				Status: "(Redis)OK",
 				URL:    LongURL,

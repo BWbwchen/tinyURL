@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-zookeeper/zk"
@@ -25,6 +26,8 @@ var counterRange int = 100
 var counterNow int = 0
 var counterBase int
 
+var counterNowLock sync.Mutex
+
 func InitZookeeper() {
 	c, _, err := zk.Connect([]string{URL}, time.Second) //*10)
 	zookeeper = c
@@ -38,7 +41,10 @@ func InitZookeeper() {
 }
 
 func GetShortName(longURL string) string {
+	counterNowLock.Lock()
 	counter := counterNow + counterBase*counterRange
+	counterNow += 1
+	counterNowLock.Unlock()
 	hash := md5.Sum([]byte(strconv.Itoa(counter)))
 
 	shortName := hex.EncodeToString(hash[:])
@@ -54,7 +60,6 @@ func GetShortName(longURL string) string {
 	}
 
 	// update counter
-	counterNow += 1
 	if counterNow == counterRange {
 		counterNow = 0
 		counterBase = getCounter()

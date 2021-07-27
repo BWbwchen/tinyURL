@@ -46,13 +46,7 @@ export default () => {
 	let nowStatus = getLongURL.json('status')
 	let long = getLongURL.json('url')
 	check(long, { 
-		'check correctness': (obj) => {
-			let result = obj == url 
-			if (result == false) {
-				console.log(obj, url, shortName)
-			}
-			return result
-		}
+		'check correctness': (obj) => obj == url 
 	});
 
 	// get history random url
@@ -63,5 +57,5 @@ export default () => {
 		'history random get status check': (resp) => resp.status == 200
 	});
 
-	sleep(0.01);
+	sleep(0.5);
 };

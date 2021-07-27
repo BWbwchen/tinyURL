@@ -41,6 +41,18 @@ func GetShortName(longURL string) string {
 	counter := counterNow + counterBase*counterRange
 	hash := md5.Sum([]byte(strconv.Itoa(counter)))
 
+	shortName := hex.EncodeToString(hash[:])
+	// TODO: maybe can do better
+	// check collision
+	i := 0
+	for {
+		_, err := DatabaseGet(shortName[i : i+LENGTH])
+		if err != nil {
+			break
+		}
+		i += 1
+	}
+
 	// update counter
 	counterNow += 1
 	if counterNow == counterRange {
@@ -48,7 +60,7 @@ func GetShortName(longURL string) string {
 		counterBase = getCounter()
 	}
 
-	return hex.EncodeToString(hash[:])[0:LENGTH]
+	return shortName[i : i+LENGTH]
 }
 
 func getCounter() int {

@@ -60,12 +60,12 @@ func InitDatabase() {
 
 func DatabaseAdd(LongURL string, shortName string) {
 	toInsert := data{LongURL: LongURL, ShortName: shortName}
-	res, err := collection.InsertOne(context.TODO(), toInsert)
+	_, err := collection.InsertOne(context.TODO(), toInsert)
 	if err != nil {
 		fmt.Println("Insert Error")
 	}
-	id := res.InsertedID
-	fmt.Println("Insert " + fmt.Sprintf("%v", id) + " record !")
+	//id := res.InsertedID
+	//fmt.Println("Insert " + fmt.Sprintf("%v", id) + " record !")
 }
 
 func DatabaseGet(shortName string) (string, error) {

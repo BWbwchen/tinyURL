@@ -32,5 +32,5 @@ For get long URL, find in redis cache first. if not found, find in the database.
 The load testing is tested by [k6](https://k6.io/)
 ![](img/load.png)
 
-## I had encounterd some problems
+## I have encounterd some problems
 1. Although I check the short name collision, I still got a lot of collision. Then I found it is the api server problem. A client send request to api server, server will create a thread to handle that request, and use the counter number to compute the hash value. What if 2 thread use counter value simultaneously ? They will use same value to compute short name, and that short name doesn't in database ! So I make a mutex lock on counter variable.

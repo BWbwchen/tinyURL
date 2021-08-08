@@ -1,0 +1,31 @@
+version: "3"
+services:
+    server:
+      container_name: myshorturl
+      image: shorturl_test
+      ports:
+        - 8081:8081
+      environment:
+        REDIS_URL: redis:6379
+        DB_URL: db:27017
+        ZOOKEEPER_URL: zookeeper:2181
+        PORT: 8081
+      depends_on:
+        - redis
+        - db
+        - zookeeper
+    redis:
+      container_name: redis
+      image: redis:alpine
+      expose:
+        - 6379
+    db:
+      container_name: monogodb
+      image: mongo:4.0.26-xenial
+      expose:
+        - 27017
+    zookeeper:
+      container_name: zookeeper
+      image: zookeeper:3.7.0
+      expose:
+        - 2181

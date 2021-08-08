@@ -9,15 +9,23 @@
 # For more information, see: https://docs.gitlab.com/ee/ci/yaml/README.html#stages
 
 stages:          # List of stages for jobs, and their order of execution
+  - test
   - build
   - deploy
 
 variables:
   DOCKER_REGISTRY: "https://index.docker.io/v1/"
-  DOCKER_REGISTRY_USER: "YOUR_NAME"
-  DOCKER_REGISTRY_PASSWORD: "YOUR_PASSWORD"
-  DOCKER_IMAGE: "YOUR_IMAGENAME"
+  DOCKER_IMAGE: "bwbwchen/shorturl"
   KUBECONFIG: /root/.kube/config
+
+
+test-job:
+  stage: test
+  before_script:
+    - apk add docker-compose
+    - docker build -f Dockerfile-ci --tag shorturl_test .
+  script:
+    - docker-compose up --abort-on-container-exit --exit-code-from server
 
 build-job:  
   image: 
@@ -26,7 +34,7 @@ build-job:
   stage: build
   script:
      - mkdir -p /kaniko/.docker
-     - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"username\":\"$DOCKER_REGISTRY_USER\",\"password\":\"$DOCKER_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+     - echo "{\"auths\":{\"$DOCKER_REGISTRY\":{\"username\":\"${DOCKER_REGISTRY_USER}\",\"password\":\"${DOCKER_REGISTRY_PASSWORD}\"}}}" > /kaniko/.docker/config.json
      - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DOCKER_IMAGE
 
 deploy-job:

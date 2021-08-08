@@ -9,5 +9,6 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/onsi/ginkgo v1.15.0 // indirect
 	github.com/onsi/gomega v1.10.5 // indirect
+	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.7.0
 )

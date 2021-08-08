@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,10 @@ type GETresponse struct {
 }
 
 func main() {
+	r := setupRouter()
+	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
+func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.POST("/add", func(c *gin.Context) {
 		var body POSTData
@@ -39,11 +44,21 @@ func main() {
 				ShortName: shortName,
 			})
 		} else {
+			var wg sync.WaitGroup
+			wg.Add(2)
 			shortName := GetShortName(body.LongURL)
 			// add in database
-			DatabaseAdd(body.LongURL, shortName)
+			go func(LongURL string, shortName string) {
+				defer wg.Done()
+				DatabaseAdd(LongURL, shortName)
+			}(body.LongURL, shortName)
 			// add in redis
-			RedisAdd(body.LongURL, shortName)
+			go func(LongURL string, shortName string) {
+				defer wg.Done()
+				RedisAdd(LongURL, shortName)
+			}(body.LongURL, shortName)
+
+			wg.Wait()
 
 			c.JSON(http.StatusOK, POSTresponse{
 				Status:    "OK",
@@ -78,5 +93,5 @@ func main() {
 			})
 		}
 	})
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	return r
 }

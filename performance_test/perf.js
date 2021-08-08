@@ -3,13 +3,16 @@ import { check, group, sleep } from 'k6';
 
 export let options = {
   stages: [
-    { duration: '15s', target: 20 }, // simulate ramp-up of traffic from 1 to 100 users over 5 minutes.
-    { duration: '1m', target: 20 }, // stay at 100 users for 10 minutes
-    { duration: '15s', target: 0 }, // ramp-down to 0 users
+    { duration: '1s', target: 30 }, // stay at 100 users for 10 minutes
+    { duration: '20s', target: 30 }, // stay at 100 users for 10 minutes
+    { duration: '1s', target: 0 }, // stay at 100 users for 10 minutes
   ]
 };
 
-const BASE_URL = 'http://192.168.0.201:30390';
+//const BASE_URL = 'http://192.168.0.201:30390';
+const BASE_URL = 'http://192.168.0.161:8081';
+//const BASE_URL = 'http://192.168.0.226';
+//const BASE_URL = 'http://shorturl.bw';
 
 function uuidv4() {
   return 'http://xxxxx4xxxyx.xxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

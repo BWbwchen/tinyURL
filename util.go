@@ -40,35 +40,47 @@ func InitZookeeper() {
 	counterBase = getCounter()
 }
 
-func GetShortName(longURL string) string {
-	counterNowLock.Lock()
-	counter := counterNow + counterBase*counterRange
-	counterNow += 1
-	counterNowLock.Unlock()
-	hash := md5.Sum([]byte(strconv.Itoa(counter)))
+func GenerateShortName(longURL string) string {
+	shortName := getUniqueShortName()
 
-	shortName := hex.EncodeToString(hash[:])
+	UpdateCounterBase()
+
+	return shortName
+}
+
+func getUniqueShortName() string {
+	counter := getCounter()
+	hash := md5.Sum([]byte(strconv.Itoa(counter)))
+	candidateName := hex.EncodeToString(hash[:])
+
+	i := 0
 	// TODO: maybe can do better
 	// check collision
-	i := 0
 	for {
-		_, err := DatabaseGet(shortName[i : i+LENGTH])
-		if err != nil {
+		if !db.ShortNameExist(candidateName[i : i+LENGTH]) {
 			break
 		}
 		i += 1
 	}
-
-	// update counter
-	if counterNow == counterRange {
-		counterNow = 0
-		counterBase = getCounter()
-	}
-
-	return shortName[i : i+LENGTH]
+	return candidateName[i : i+LENGTH]
 }
 
 func getCounter() int {
+	counterNowLock.Lock()
+	counter := counterNow + counterBase*counterRange
+	counterNow += 1
+	counterNowLock.Unlock()
+	return counter
+}
+
+func UpdateCounterBase() {
+	if counterNow == counterRange {
+		counterNow = 0
+		counterBase = getNewCounterBase()
+	}
+}
+
+func getNewCounterBase() int {
 	// get the counter number
 	counterByteArray, _, err := zookeeper.Get(zookeeperPath)
 	if err != nil {
@@ -79,23 +91,3 @@ func getCounter() int {
 	zookeeper.Set(zookeeperPath, []byte(strconv.Itoa(counter+1)), -1)
 	return counter
 }
-
-/*
-func base62(num int) string {
-	b := make([]byte, 0)
-
-	// loop as long the num is bigger than zero
-	for num > 0 {
-		// receive the rest
-		r := math.Mod(float64(num), float64(Base))
-
-		// devide by Base
-		num /= Base
-
-		// append chars
-		b = append([]byte{CharacterSet[int(r)]}, b...)
-	}
-
-	return string(b)
-}
-*/

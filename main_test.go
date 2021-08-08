@@ -26,19 +26,33 @@ type testingSuite struct {
 	Router  *gin.Engine
 }
 
+type tinyURLTesting interface {
+	Test(string)
+}
+
+var tb tinyURLTesting
+
 func TestShortURLService(t *testing.T) {
-	tb := testingSuite{
+	_tb := testingSuite{
 		TestBed: t,
 		Router:  setupRouter(),
 	}
+	tb = _tb
+
+	tb.Test("https://www.google.com")
 	for i := 0; i < 10; i++ {
 		originalURL := "https://" + randomString(30)
-		shortURL := tb.requestShortURL(originalURL)
-		URL := tb.requestLongURL(shortURL)
-		assert.Equal(t, originalURL, URL)
+		tb.Test(originalURL)
 	}
-
+	tb.Test("https://www.google.com")
 }
+
+func (tb testingSuite) Test(originalURL string) {
+	shortURL := tb.requestShortURL(originalURL)
+	URL := tb.requestLongURL(shortURL)
+	assert.Equal(tb.TestBed, originalURL, URL)
+}
+
 func (tb testingSuite) requestShortURL(originalURL string) string {
 	gin.SetMode(gin.TestMode)
 	postBody, _ := json.Marshal(map[string]string{

@@ -11,73 +11,93 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/* Used to create a singleton object of MongoDB client.
-Initialized and exposed through  GetMongoClient().*/
-var clientInstance *mongo.Client
+type DBStruct struct {
+	Client     *mongo.Client
+	Collection *mongo.Collection
+}
 
-//Used during creation of singleton client object in GetMongoClient().
-var clientInstanceError error
+type DB interface {
+	GetURL(string) string
+	GetShortName(string) string
+	AddURLPair(string, string)
+	URLExist(string) bool
+	ShortNameExist(string) bool
+}
 
-//Used to execute client creation procedure only once.
-var mongoOnce sync.Once
+var db DB
 
-var collection *mongo.Collection
+//GetMongoClient - Return mongodb connection to work with
+func InitDatabase() {
+	client := connectDB()
+	_db := DBStruct{
+		Client:     client,
+		Collection: client.Database("url").Collection("url"),
+	}
+	db = _db
+}
 
-//I have used below constants just to hold required database config's.
-var (
-	CONNECTIONSTRING = "mongodb://" + os.Getenv("DB_URL")
-)
+func connectDB() *mongo.Client {
+	var mongoOnce sync.Once
+	var client *mongo.Client
+	var clientInstanceError error
+	var CONNECTIONSTRING = "mongodb://" + os.Getenv("DB_URL")
+	//Perform connection creation operation only once.
+	mongoOnce.Do(func() {
+		// Set client options
+		clientOptions := options.Client().ApplyURI(CONNECTIONSTRING)
+		// Connect to MongoDB
+		_client, err := mongo.Connect(context.TODO(), clientOptions)
+		if err != nil {
+			clientInstanceError = err
+		}
+		// Check the connection
+		err = _client.Ping(context.TODO(), nil)
+		if err != nil {
+			clientInstanceError = err
+		}
+		client = _client
+	})
+	if clientInstanceError != nil {
+		panic("DB connection error")
+	}
+	return client
+}
 
 type data struct {
 	LongURL   string `json:"longurl"`
 	ShortName string `json:"shortname"`
 }
 
-//GetMongoClient - Return mongodb connection to work with
-func InitDatabase() {
-	//Perform connection creation operation only once.
-	mongoOnce.Do(func() {
-		// Set client options
-		clientOptions := options.Client().ApplyURI(CONNECTIONSTRING)
-		// Connect to MongoDB
-		client, err := mongo.Connect(context.TODO(), clientOptions)
-		if err != nil {
-			clientInstanceError = err
-		}
-		// Check the connection
-		err = client.Ping(context.TODO(), nil)
-		if err != nil {
-			clientInstanceError = err
-		}
-		clientInstance = client
-	})
-	if clientInstanceError != nil {
-		fmt.Println("Connection error")
-	}
-	collection = clientInstance.Database("url").Collection("url")
-	//return clientInstance, clientInstanceError
-}
-
-func DatabaseAdd(LongURL string, shortName string) {
+func (dbs DBStruct) AddURLPair(LongURL string, shortName string) {
 	toInsert := data{LongURL: LongURL, ShortName: shortName}
-	_, err := collection.InsertOne(context.TODO(), toInsert)
+	_, err := dbs.Collection.InsertOne(context.TODO(), toInsert)
 	if err != nil {
 		fmt.Println("Insert Error")
 	}
-	//id := res.InsertedID
-	//fmt.Println("Insert " + fmt.Sprintf("%v", id) + " record !")
 }
 
-func DatabaseGet(shortName string) (string, error) {
-	var result data
-
-	err := collection.FindOne(context.TODO(), bson.M{"shortname": shortName}).Decode(&result)
-	return result.LongURL, err
+func (dbs DBStruct) GetURL(shortName string) string {
+	result, _ := dbs.find("shortname", shortName)
+	return result.LongURL
 }
 
-func DatabaseURLExist(LongURL string) (string, bool) {
-	var result data
+func (dbs DBStruct) URLExist(LongURL string) bool {
+	_, err := dbs.find("longurl", LongURL)
+	return err == nil
+}
 
-	err := collection.FindOne(context.TODO(), bson.M{"longurl": LongURL}).Decode(&result)
-	return result.ShortName, (err == nil)
+func (dbs DBStruct) ShortNameExist(shortName string) bool {
+	_, err := dbs.find("shortname", shortName)
+	return err == nil
+}
+
+func (dbs DBStruct) GetShortName(LongURL string) string {
+	result, _ := dbs.find("longurl", LongURL)
+	return result.ShortName
+}
+
+func (dbs DBStruct) find(columnName, value string) (data, error) {
+	var result data
+	err := dbs.Collection.FindOne(context.TODO(), bson.M{columnName: value}).Decode(&result)
+	return result, err
 }
